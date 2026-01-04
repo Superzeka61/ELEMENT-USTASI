@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Ustası v2 - Eksiksiz Test</title>
+    <style>
+        :root { --primary: #6c5ce7; --bg: #f0f3f7; --card: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        .progress-bar { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        #progress-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.4s; }
+        .question-box { margin: 20px 0; padding: 20px; border: 2px dashed #ddd; border-radius: 15px; }
+        .type { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        .q-text { font-size: 2rem; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        input { width: 80%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; text-align: center; outline: none; }
+        button { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; margin-top: 15px; width: 85%; font-size: 1rem; }
+        #feedback { height: 25px; margin-top: 15px; font-weight: bold; }
+        .remaining { font-size: 0.8rem; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+    <div class="type" id="type-label">Yükleniyor...</div>
+    <div class="question-box">
+        <div class="q-text" id="q-display">...</div>
+    </div>
+    <input type="text" id="user-input" placeholder="Cevabınız..." autocomplete="off">
+    <button onclick="check()">Kontrol Et</button>
+    <div id="feedback"></div>
+    <div class="remaining" id="stats">Kalan element: -</div>
+</div>
+
+<script>
+    const allElements = [
+        {n:"Hidrojen", s:"H"}, {n:"Helyum", s:"He"}, {n:"Lityum", s:"Li"}, {n:"Berilyum", s:"Be"},
+        {n:"Bor", s:"B"}, {n:"Karbon", s:"C"}, {n:"Azot", s:"N"}, {n:"Oksijen", s:"O"},
+        {n:"Flor", s:"F"}, {n:"Neon", s:"Ne"}, {n:"Sodyum", s:"Na"}, {n:"Magnezyum", s:"Mg"},
+        {n:"Alüminyum", s:"Al"}, {n:"Silisyum", s:"Si"}, {n:"Fosfor", s:"P"}, {n:"Kükürt", s:"S"},
+        {n:"Klor", s:"Cl"}, {n:"Argon", s:"Ar"}, {n:"Potasyum", s:"K"}, {n:"Kalsiyum", s:"Ca"},
+        {n:"Altın", s:"Au"}, {n:"Gümüş", s:"Ag"}, {n:"Bakır", s:"Cu"}, {n:"Çinko", s:"Zn"},
+        {n:"Kurşun", s:"Pb"}, {n:"Cıva", s:"Hg"}, {n:"Demir", s:"Fe"}, {n:"Platin", s:"Pt"},
+        {n:"İyot", s:"I"}, {n:"Kalay", s:"Sn"}, {n:"Kobalt", s:"Co"}
+    ];
+
+    let pool = [];
+    let currentItem, mode;
+    let totalAsked = 0;
+
+    function shufflePool() {
+        pool = [...allElements].sort(() => Math.random() - 0.5);
+        totalAsked = 0;
+    }
+
+    function nextQuestion() {
+        if (pool.length === 0) {
+            alert("Harika! Listedeki tüm elementleri bitirdin. Şimdi baştan karışık başlıyoruz.");
+            shufflePool();
+        }
+
+        document.getElementById('user-input').value = "";
+        document.getElementById('feedback').innerText = "";
+        
+        // Havuzun sonundan bir tane çek (pop)
+        currentItem = pool.pop();
+        totalAsked++;
+        mode = Math.random() > 0.5 ? 'n2s' : 's2n';
+
+        document.getElementById('type-label').innerText = mode === 'n2s' ? "Sembolü Nedir?" : "Hangi Element?";
+        document.getElementById('q-display').innerText = mode === 'n2s' ? currentItem.n : currentItem.s;
+        
+        // İstatistikler
+        document.getElementById('stats').innerText = `Kalan: ${pool.length} | Toplam: ${allElements.length}`;
+        document.getElementById('progress-fill').style.width = `${(totalAsked / allElements.length) * 100}%`;
+    }
+
+    function check() {
+        const val = document.getElementById('user-input').value.trim().toLowerCase();
+        const correct = (mode === 'n2s' ? currentItem.s : currentItem.n).toLowerCase();
+        const fb = document.getElementById('feedback');
+
+        if(val === correct) {
+            fb.innerText = "✅ Doğru!"; fb.style.color = "green";
+            setTimeout(nextQuestion, 1000);
+        } else {
+            fb.innerText = `❌ Yanlış! Cevap: ${correct.toUpperCase()}`; fb.style.color = "red";
+            // Yanlış bildiğini havuza geri at ki tekrar sorsun!
+            pool.unshift(currentItem); 
+            setTimeout(nextQuestion, 2000);
+        }
+    }
+
+    document.getElementById('user-input').addEventListener("keyup", e => { if(e.key === "Enter") check(); });
+    shufflePool();
+    nextQuestion();
+</script>
+</body>
+</html>
